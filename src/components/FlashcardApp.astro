@@ -1,13 +1,14 @@
 ---
 import { QUESTIONS } from '../data/questions';
+const appVersion = '3';
 ---
 
-<main class="app" data-questions={JSON.stringify(QUESTIONS)}>
+<main class="app" data-questions={JSON.stringify(QUESTIONS)} data-step="1">
   <header class="app-header">
     <p class="app-brand">Nongkrong Cards</p>
     <p class="app-tagline">Pertanyaan santuy buat ngobrol di cafe</p>
-    <div class="progress-pill" id="progress-pill" aria-live="polite">
-      <span id="progress-label">1 / 50</span>
+    <div class="progress-pill" data-ui="progress-pill" aria-live="polite">
+      <span data-ui="progress">1 / 50</span>
     </div>
   </header>
 
@@ -26,13 +27,13 @@ import { QUESTIONS } from '../data/questions';
         </div>
       </article>
 
-      <article class="card card-front" id="flashcard" aria-live="polite">
+      <article class="card card-front" data-ui="card" aria-live="polite">
         <div class="lace-frame">
           <div class="card-face">
-            <p class="question-label" id="question-label">Pertanyaan #1</p>
+            <p class="question-label" data-ui="question-label">Pertanyaan #1</p>
 
             <div class="question-body">
-              <p class="question-text" id="question-text">{QUESTIONS[0]}</p>
+              <p class="question-text" data-ui="question-text">{QUESTIONS[0]}</p>
             </div>
 
             <svg class="heart-icon" viewBox="0 0 32 28" aria-hidden="true">
@@ -41,8 +42,7 @@ import { QUESTIONS } from '../data/questions';
                 fill="none"
                 stroke="currentColor"
                 stroke-width="1.8"
-                stroke-linejoin="round"
-              ></path>
+                stroke-linejoin="round"></path>
             </svg>
           </div>
         </div>
@@ -51,17 +51,17 @@ import { QUESTIONS } from '../data/questions';
   </section>
 
   <nav class="controls" aria-label="Navigasi kartu">
-    <button type="button" class="nav-btn nav-btn--prev" id="btn-prev" aria-label="Pertanyaan sebelumnya" disabled>
+    <button type="button" class="nav-btn nav-btn--prev" data-ui="btn-prev" aria-label="Pertanyaan sebelumnya" disabled>
       <span aria-hidden="true">←</span>
       <span class="nav-btn-label">Sebelumnya</span>
     </button>
 
-    <button type="button" class="nav-btn nav-btn--shuffle" id="btn-shuffle" aria-label="Acak urutan pertanyaan">
+    <button type="button" class="nav-btn nav-btn--shuffle" data-ui="btn-shuffle" aria-label="Acak urutan pertanyaan">
       <span aria-hidden="true">🔀</span>
       <span class="nav-btn-label">Acak</span>
     </button>
 
-    <button type="button" class="nav-btn nav-btn--next" id="btn-next" aria-label="Pertanyaan berikutnya">
+    <button type="button" class="nav-btn nav-btn--next" data-ui="btn-next" aria-label="Pertanyaan berikutnya">
       <span class="nav-btn-label">Berikutnya</span>
       <span aria-hidden="true">→</span>
     </button>
@@ -70,151 +70,7 @@ import { QUESTIONS } from '../data/questions';
   <p class="hint">Geser kartu ke kiri/kanan atau pakai tombol navigasi</p>
 </main>
 
-<script>
-  import {
-    createInitialState,
-    getProgressLabel,
-    canGoNext,
-    canGoPrev,
-    goNext,
-    goPrev,
-    getQuestionAt,
-    getQuestionLabel,
-    shuffleAndAdvance,
-  } from '../lib/flashcard';
-
-  const app = document.querySelector('.app')!;
-  const questions: string[] = JSON.parse(app.getAttribute('data-questions') ?? '[]');
-  let order = questions.map((_, i) => i);
-  let state = createInitialState(questions.length);
-
-  const progressLabel = document.getElementById('progress-label')!;
-  const progressPill = document.getElementById('progress-pill')!;
-  const questionLabel = document.getElementById('question-label')!;
-  const questionText = document.getElementById('question-text')!;
-  const btnPrev = document.getElementById('btn-prev') as HTMLButtonElement;
-  const btnNext = document.getElementById('btn-next') as HTMLButtonElement;
-  const btnShuffle = document.getElementById('btn-shuffle') as HTMLButtonElement;
-  const card = document.getElementById('flashcard')!;
-  let animationTimer: ReturnType<typeof window.setTimeout> | null = null;
-
-  function clearAnimationTimer() {
-    if (animationTimer !== null) {
-      window.clearTimeout(animationTimer);
-      animationTimer = null;
-    }
-  }
-
-  function render() {
-    const questionIndex = order[state.currentIndex];
-    const question = getQuestionAt(questions, questionIndex) ?? '';
-
-    progressLabel.textContent = getProgressLabel(state);
-    questionLabel.textContent = getQuestionLabel(state);
-    questionText.textContent = question;
-
-    btnPrev.disabled = !canGoPrev(state);
-    btnNext.disabled = !canGoNext(state);
-  }
-
-  function pulseProgressPill() {
-    progressPill.classList.remove('progress-pill--pulse');
-    void progressPill.offsetWidth;
-    progressPill.classList.add('progress-pill--pulse');
-    window.setTimeout(() => progressPill.classList.remove('progress-pill--pulse'), 450);
-  }
-
-  function animate(direction: 'next' | 'prev') {
-    clearAnimationTimer();
-    card.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
-    void card.offsetWidth;
-    card.classList.add(direction === 'next' ? 'slide-out-left' : 'slide-out-right');
-
-    animationTimer = window.setTimeout(() => {
-      animationTimer = null;
-      card.classList.remove('slide-out-left', 'slide-out-right');
-      card.classList.add(direction === 'next' ? 'slide-in-right' : 'slide-in-left');
-      window.setTimeout(() => {
-        card.classList.remove('slide-in-left', 'slide-in-right');
-      }, 280);
-    }, 220);
-  }
-
-  btnNext.addEventListener('click', () => {
-    if (!canGoNext(state)) return;
-    state = goNext(state);
-    render();
-    animate('next');
-  });
-
-  btnPrev.addEventListener('click', () => {
-    if (!canGoPrev(state)) return;
-    state = goPrev(state);
-    render();
-    animate('prev');
-  });
-
-  btnShuffle.addEventListener('click', () => {
-    clearAnimationTimer();
-    card.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
-
-    const shuffled = shuffleAndAdvance(state);
-    order = shuffled.order;
-    state = shuffled.state;
-
-    render();
-    pulseProgressPill();
-    card.classList.add('shuffle-pop');
-    window.setTimeout(() => card.classList.remove('shuffle-pop'), 400);
-  });
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-
-  card.addEventListener(
-    'touchstart',
-    (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    },
-    { passive: true },
-  );
-
-  card.addEventListener(
-    'touchend',
-    (e) => {
-      const deltaX = e.changedTouches[0].screenX - touchStartX;
-      const deltaY = e.changedTouches[0].screenY - touchStartY;
-
-      if (Math.abs(deltaX) < 50 || Math.abs(deltaY) > Math.abs(deltaX)) return;
-
-      if (deltaX < 0 && canGoNext(state)) {
-        state = goNext(state);
-        render();
-        animate('next');
-      } else if (deltaX > 0 && canGoPrev(state)) {
-        state = goPrev(state);
-        render();
-        animate('prev');
-      }
-    },
-    { passive: true },
-  );
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' && canGoNext(state)) {
-      state = goNext(state);
-      render();
-      animate('next');
-    } else if (e.key === 'ArrowLeft' && canGoPrev(state)) {
-      state = goPrev(state);
-      render();
-      animate('prev');
-    }
-  });
-
-  render();
-</script>
+<script src={`/flashcard-app.js?v=${appVersion}`} defer></script>
 
 <style>
   .app {
@@ -258,11 +114,13 @@ import { QUESTIONS } from '../data/questions';
     border: 1px solid rgba(128, 0, 32, 0.12);
     border-radius: 999px;
     padding: 0.45rem 1.1rem;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--maroon);
     box-shadow: 0 2px 10px rgba(92, 0, 24, 0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 5.5rem;
+    text-align: center;
   }
 
   .progress-pill--pulse {
@@ -395,8 +253,8 @@ import { QUESTIONS } from '../data/questions';
 
   .question-label {
     justify-self: end;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     font-style: italic;
     color: var(--maroon);
     text-align: right;
