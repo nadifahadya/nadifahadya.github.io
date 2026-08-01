@@ -1,0 +1,464 @@
+---
+import { QUESTIONS } from '../data/questions';
+---
+
+<main class="app" data-questions={JSON.stringify(QUESTIONS)}>
+  <header class="app-header">
+    <p class="app-brand">Nongkrong Cards</p>
+    <p class="app-tagline">Pertanyaan santuy buat ngobrol di cafe</p>
+    <div class="progress-pill" aria-live="polite">
+      <span id="progress-label">1 / 50</span>
+    </div>
+  </header>
+
+  <section class="deck-area" aria-label="Deck kartu pertanyaan">
+    <div class="card-stack">
+      <article class="card card-back" aria-hidden="true">
+        <div class="card-inner card-inner--back">
+          <svg class="sticker sticker--small" viewBox="0 0 80 80" aria-hidden="true">
+            <circle cx="40" cy="40" r="18" fill="#e8e4df" stroke="#333" stroke-width="3" />
+            <circle cx="34" cy="36" r="2.5" fill="#333" />
+            <circle cx="46" cy="36" r="2.5" fill="#333" />
+            <path d="M32 46 Q40 52 48 46" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+          <p class="card-back-text">Swipe atau tap tombol di bawah</p>
+        </div>
+      </article>
+
+      <article class="card card-front" id="flashcard" aria-live="polite">
+        <div class="card-inner card-inner--front">
+          <svg class="sticker" viewBox="0 0 120 120" aria-hidden="true">
+            <ellipse cx="60" cy="72" rx="28" ry="14" fill="#5a8f3c" stroke="#2a2a2a" stroke-width="3" />
+            <circle cx="60" cy="48" r="28" fill="#f5d76e" stroke="#2a2a2a" stroke-width="3" />
+            <circle cx="50" cy="44" r="3.5" fill="#2a2a2a" />
+            <circle cx="70" cy="44" r="3.5" fill="#2a2a2a" />
+            <path d="M48 54 Q60 64 72 54" fill="none" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round" />
+            <line x1="60" y1="20" x2="60" y2="8" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round" />
+            <ellipse cx="60" cy="6" rx="6" ry="4" fill="#5a8f3c" stroke="#2a2a2a" stroke-width="2" />
+          </svg>
+
+          <div class="card-content">
+            <p class="question-label" id="question-label">Pertanyaan #1</p>
+            <p class="question-text" id="question-text">{QUESTIONS[0]}</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <nav class="controls" aria-label="Navigasi kartu">
+    <button type="button" class="nav-btn nav-btn--prev" id="btn-prev" aria-label="Pertanyaan sebelumnya" disabled>
+      <span aria-hidden="true">←</span>
+      <span class="nav-btn-label">Sebelumnya</span>
+    </button>
+
+    <button type="button" class="nav-btn nav-btn--shuffle" id="btn-shuffle" aria-label="Acak urutan pertanyaan">
+      <span aria-hidden="true">🔀</span>
+      <span class="nav-btn-label">Acak</span>
+    </button>
+
+    <button type="button" class="nav-btn nav-btn--next" id="btn-next" aria-label="Pertanyaan berikutnya">
+      <span class="nav-btn-label">Berikutnya</span>
+      <span aria-hidden="true">→</span>
+    </button>
+  </nav>
+
+  <p class="hint">Geser kartu ke kiri/kanan atau pakai tombol navigasi</p>
+</main>
+
+<script>
+  import {
+    createInitialState,
+    getProgressLabel,
+    canGoNext,
+    canGoPrev,
+    goNext,
+    goPrev,
+    shuffleIndices,
+    getQuestionAt,
+  } from '../lib/flashcard';
+
+  const app = document.querySelector('.app')!;
+  const questions: string[] = JSON.parse(app.getAttribute('data-questions') ?? '[]');
+  let order = questions.map((_, i) => i);
+  let state = createInitialState(questions.length);
+
+  const progressLabel = document.getElementById('progress-label')!;
+  const questionLabel = document.getElementById('question-label')!;
+  const questionText = document.getElementById('question-text')!;
+  const btnPrev = document.getElementById('btn-prev') as HTMLButtonElement;
+  const btnNext = document.getElementById('btn-next') as HTMLButtonElement;
+  const btnShuffle = document.getElementById('btn-shuffle') as HTMLButtonElement;
+  const card = document.getElementById('flashcard')!;
+
+  function render() {
+    const questionIndex = order[state.currentIndex];
+    const question = getQuestionAt(questions, questionIndex) ?? '';
+
+    progressLabel.textContent = getProgressLabel(state);
+    questionLabel.textContent = `Pertanyaan #${state.currentIndex + 1}`;
+    questionText.textContent = question;
+
+    btnPrev.disabled = !canGoPrev(state);
+    btnNext.disabled = !canGoNext(state);
+  }
+
+  function animate(direction: 'next' | 'prev') {
+    card.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
+    void card.offsetWidth;
+    card.classList.add(direction === 'next' ? 'slide-out-left' : 'slide-out-right');
+
+    window.setTimeout(() => {
+      render();
+      card.classList.remove('slide-out-left', 'slide-out-right');
+      card.classList.add(direction === 'next' ? 'slide-in-right' : 'slide-in-left');
+      window.setTimeout(() => {
+        card.classList.remove('slide-in-left', 'slide-in-right');
+      }, 280);
+    }, 220);
+  }
+
+  btnNext.addEventListener('click', () => {
+    if (!canGoNext(state)) return;
+    state = goNext(state);
+    animate('next');
+  });
+
+  btnPrev.addEventListener('click', () => {
+    if (!canGoPrev(state)) return;
+    state = goPrev(state);
+    animate('prev');
+  });
+
+  btnShuffle.addEventListener('click', () => {
+    order = shuffleIndices(questions.length);
+    state = createInitialState(questions.length);
+    render();
+    card.classList.add('shuffle-pop');
+    window.setTimeout(() => card.classList.remove('shuffle-pop'), 400);
+  });
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  card.addEventListener(
+    'touchstart',
+    (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    },
+    { passive: true },
+  );
+
+  card.addEventListener(
+    'touchend',
+    (e) => {
+      const deltaX = e.changedTouches[0].screenX - touchStartX;
+      const deltaY = e.changedTouches[0].screenY - touchStartY;
+
+      if (Math.abs(deltaX) < 50 || Math.abs(deltaY) > Math.abs(deltaX)) return;
+
+      if (deltaX < 0 && canGoNext(state)) {
+        state = goNext(state);
+        animate('next');
+      } else if (deltaX > 0 && canGoPrev(state)) {
+        state = goPrev(state);
+        animate('prev');
+      }
+    },
+    { passive: true },
+  );
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && canGoNext(state)) {
+      state = goNext(state);
+      animate('next');
+    } else if (e.key === 'ArrowLeft' && canGoPrev(state)) {
+      state = goPrev(state);
+      animate('prev');
+    }
+  });
+
+  render();
+</script>
+
+<style>
+  .app {
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .app-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .app-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2a2a2a;
+  }
+
+  .app-tagline {
+    font-size: 1rem;
+    color: #6b6560;
+  }
+
+  .progress-pill {
+    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6b6560;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .deck-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0 1rem;
+    touch-action: pan-y;
+  }
+
+  .card-stack {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 3 / 4.2;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    border-radius: 2rem;
+    overflow: hidden;
+    box-shadow:
+      0 12px 32px rgba(0, 0, 0, 0.14),
+      0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-back {
+    transform: rotate(4deg) translate(12px, 10px) scale(0.96);
+    z-index: 1;
+  }
+
+  .card-front {
+    z-index: 2;
+    transition: transform 0.28s ease, opacity 0.28s ease;
+  }
+
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .card-inner--front {
+    background-color: #c45c4a;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E"),
+      linear-gradient(145deg, #d06855 0%, #b8523f 55%, #a84838 100%);
+  }
+
+  .card-inner--back {
+    background-color: #8a8580;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
+      linear-gradient(145deg, #96918c 0%, #7a7570 100%);
+    justify-content: flex-end;
+  }
+
+  .sticker {
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+  }
+
+  .sticker--small {
+    width: 56px;
+    height: 56px;
+    opacity: 0.7;
+  }
+
+  .card-back-text {
+    margin-top: auto;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .card-content {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .question-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    font-style: italic;
+  }
+
+  .question-text {
+    font-size: clamp(1.25rem, 5vw, 1.55rem);
+    font-weight: 700;
+    line-height: 1.35;
+    color: #ffffff;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 3.25rem;
+    padding: 0.75rem 1rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+  }
+
+  .nav-btn:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .nav-btn--prev,
+  .nav-btn--next {
+    background: #ffffff;
+    color: #c45c4a;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  }
+
+  .nav-btn--prev {
+    justify-self: start;
+  }
+
+  .nav-btn--next {
+    justify-self: end;
+  }
+
+  .nav-btn--shuffle {
+    background: #c45c4a;
+    color: #ffffff;
+    min-width: 4.5rem;
+    min-height: 4.5rem;
+    border-radius: 50%;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    box-shadow: 0 6px 18px rgba(196, 92, 74, 0.35);
+  }
+
+  .nav-btn-label {
+    font-size: 0.85rem;
+  }
+
+  .nav-btn--shuffle .nav-btn-label {
+    font-size: 0.7rem;
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8a8580;
+  }
+
+  .slide-out-left {
+    transform: translateX(-110%) rotate(-6deg);
+    opacity: 0;
+  }
+
+  .slide-out-right {
+    transform: translateX(110%) rotate(6deg);
+    opacity: 0;
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.28s ease forwards;
+  }
+
+  .slide-in-left {
+    animation: slideInLeft 0.28s ease forwards;
+  }
+
+  .shuffle-pop {
+    animation: shufflePop 0.4s ease;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(80px) rotate(4deg);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0) rotate(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-80px) rotate(-4deg);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0) rotate(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes shufflePop {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03) rotate(-2deg);
+    }
+  }
+
+  @media (min-width: 480px) {
+    .app {
+      padding-top: 2rem;
+    }
+
+    .card-stack {
+      max-width: 360px;
+    }
+
+    .nav-btn {
+      min-height: 3.5rem;
+      padding: 0.85rem 1.25rem;
+    }
+  }
+</style>
