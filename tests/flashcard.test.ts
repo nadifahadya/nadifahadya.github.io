@@ -10,6 +10,8 @@ import {
   goToIndex,
   shuffleIndices,
   getQuestionAt,
+  getQuestionLabel,
+  applyShuffle,
 } from '../src/lib/flashcard';
 import { QUESTIONS, TOTAL_QUESTIONS } from '../src/data/questions';
 
@@ -57,6 +59,19 @@ describe('shuffleIndices', () => {
   it('produces deterministic output with fixed random', () => {
     const random = () => 0;
     expect(shuffleIndices(3, random)).toEqual([1, 2, 0]);
+  });
+});
+
+describe('applyShuffle', () => {
+  it('resets progress counter to the first card', () => {
+    let state = createInitialState(5);
+    state = goToIndex(state, 3);
+
+    const { state: shuffledState, order } = applyShuffle(5, () => 0.5);
+
+    expect(getProgressLabel(shuffledState)).toBe('1 / 5');
+    expect(getQuestionLabel(shuffledState)).toBe('Pertanyaan #1');
+    expect(order).toHaveLength(5);
   });
 });
 

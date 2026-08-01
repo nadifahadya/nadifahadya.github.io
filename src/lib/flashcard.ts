@@ -51,3 +51,21 @@ export function getQuestionAt<T>(items: readonly T[], index: number): T | undefi
   if (index < 0 || index >= items.length) return undefined;
   return items[index];
 }
+
+export function getActiveQuestionIndex(order: readonly number[], state: FlashcardState): number {
+  return order[state.currentIndex] ?? state.currentIndex;
+}
+
+export function getQuestionLabel(state: FlashcardState): string {
+  return `Pertanyaan #${getQuestionNumber(state)}`;
+}
+
+export function applyShuffle(
+  total: number,
+  random: () => number = Math.random,
+): { state: FlashcardState; order: number[] } {
+  return {
+    state: createInitialState(total),
+    order: shuffleIndices(total, random),
+  };
+}
