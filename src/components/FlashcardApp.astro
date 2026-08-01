@@ -12,34 +12,38 @@ import { QUESTIONS } from '../data/questions';
   </header>
 
   <section class="deck-area" aria-label="Deck kartu pertanyaan">
-    <div class="card-stack">
+    <div class="card-scene">
+      <div class="envelope" aria-hidden="true">
+        <div class="envelope-body"></div>
+        <div class="envelope-flap"></div>
+      </div>
+
       <article class="card card-back" aria-hidden="true">
-        <div class="card-inner card-inner--back">
-          <svg class="sticker sticker--small" viewBox="0 0 80 80" aria-hidden="true">
-            <circle cx="40" cy="40" r="18" fill="#e8e4df" stroke="#333" stroke-width="3" />
-            <circle cx="34" cy="36" r="2.5" fill="#333" />
-            <circle cx="46" cy="36" r="2.5" fill="#333" />
-            <path d="M32 46 Q40 52 48 46" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" />
-          </svg>
-          <p class="card-back-text">Swipe atau tap tombol di bawah</p>
+        <div class="lace-frame">
+          <div class="card-face card-face--back">
+            <p class="card-back-text">Geser kartu atau tap tombol di bawah</p>
+          </div>
         </div>
       </article>
 
       <article class="card card-front" id="flashcard" aria-live="polite">
-        <div class="card-inner card-inner--front">
-          <svg class="sticker" viewBox="0 0 120 120" aria-hidden="true">
-            <ellipse cx="60" cy="72" rx="28" ry="14" fill="#5a8f3c" stroke="#2a2a2a" stroke-width="3" />
-            <circle cx="60" cy="48" r="28" fill="#f5d76e" stroke="#2a2a2a" stroke-width="3" />
-            <circle cx="50" cy="44" r="3.5" fill="#2a2a2a" />
-            <circle cx="70" cy="44" r="3.5" fill="#2a2a2a" />
-            <path d="M48 54 Q60 64 72 54" fill="none" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round" />
-            <line x1="60" y1="20" x2="60" y2="8" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round" />
-            <ellipse cx="60" cy="6" rx="6" ry="4" fill="#5a8f3c" stroke="#2a2a2a" stroke-width="2" />
-          </svg>
-
-          <div class="card-content">
+        <div class="lace-frame">
+          <div class="card-face">
             <p class="question-label" id="question-label">Pertanyaan #1</p>
-            <p class="question-text" id="question-text">{QUESTIONS[0]}</p>
+
+            <div class="question-body">
+              <p class="question-text" id="question-text">{QUESTIONS[0]}</p>
+            </div>
+
+            <svg class="heart-icon" viewBox="0 0 32 28" aria-hidden="true">
+              <path
+                d="M16 24 C16 24 3 15 3 9 C3 5.5 5.5 3 8.5 3 C11 3 13 4.5 16 8 C19 4.5 21 3 23.5 3 C26.5 3 29 5.5 29 9 C29 15 16 24 16 24 Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
           </div>
         </div>
       </article>
@@ -184,8 +188,13 @@ import { QUESTIONS } from '../data/questions';
 
 <style>
   .app {
+    --maroon: #800020;
+    --maroon-dark: #5c0018;
+    --cream: #fdf5e6;
+    --parchment: #e8dcc8;
+
     min-height: 100dvh;
-    max-width: 480px;
+    max-width: 520px;
     margin: 0 auto;
     padding: 1.25rem 1.25rem 2rem;
     display: flex;
@@ -204,23 +213,25 @@ import { QUESTIONS } from '../data/questions';
   .app-brand {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #2a2a2a;
+    color: var(--maroon);
+    font-style: italic;
   }
 
   .app-tagline {
     font-size: 1rem;
-    color: #6b6560;
+    color: #6b5344;
   }
 
   .progress-pill {
     margin-top: 0.5rem;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(128, 0, 32, 0.12);
     border-radius: 999px;
     padding: 0.45rem 1.1rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #6b6560;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    color: var(--maroon);
+    box-shadow: 0 2px 10px rgba(92, 0, 24, 0.08);
   }
 
   .deck-area {
@@ -228,99 +239,145 @@ import { QUESTIONS } from '../data/questions';
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 0 1rem;
+    padding: 1rem 0 1.25rem;
     touch-action: pan-y;
   }
 
-  .card-stack {
+  .card-scene {
     position: relative;
     width: 100%;
-    max-width: 340px;
-    aspect-ratio: 3 / 4.2;
+    max-width: 380px;
+    aspect-ratio: 4 / 3.1;
+  }
+
+  .envelope {
+    position: absolute;
+    inset: 8% 4% 0;
+    z-index: 0;
+  }
+
+  .envelope-body {
+    position: absolute;
+    inset: 18% 0 0;
+    background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    border-radius: 4px 4px 8px 8px;
+    box-shadow: 0 10px 24px rgba(92, 0, 24, 0.28);
+  }
+
+  .envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52%;
+    background: linear-gradient(180deg, #9a0028 0%, var(--maroon) 100%);
+    clip-path: polygon(0 0, 50% 72%, 100% 0);
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18));
   }
 
   .card {
     position: absolute;
-    inset: 0;
-    border-radius: 2rem;
-    overflow: hidden;
-    box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.14),
-      0 4px 12px rgba(0, 0, 0, 0.08);
+    left: 6%;
+    right: 6%;
+    top: 10%;
+    bottom: 4%;
+    z-index: 2;
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.16));
   }
 
   .card-back {
-    transform: rotate(4deg) translate(12px, 10px) scale(0.96);
+    transform: rotate(2.5deg) translate(10px, 8px);
     z-index: 1;
+    opacity: 0.92;
   }
 
   .card-front {
-    z-index: 2;
+    z-index: 3;
     transition: transform 0.28s ease, opacity 0.28s ease;
   }
 
-  .card-inner {
+  .lace-frame {
     width: 100%;
     height: 100%;
-    padding: 1.75rem 1.5rem;
-    display: flex;
-    flex-direction: column;
+    padding: 18px;
+    background: #ffffff;
     position: relative;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.9),
+      0 0 0 2px rgba(128, 0, 32, 0.05);
   }
 
-  .card-inner--front {
-    background-color: #c45c4a;
-    background-image:
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E"),
-      linear-gradient(145deg, #d06855 0%, #b8523f 55%, #a84838 100%);
+  .lace-frame::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 2px dotted rgba(255, 255, 255, 0.95);
+    border-radius: 1px;
+    pointer-events: none;
+    background:
+      radial-gradient(circle, rgba(255, 255, 255, 0.95) 1.5px, transparent 2px) 0 0 / 14px 14px,
+      radial-gradient(circle, rgba(255, 255, 255, 0.85) 1px, transparent 1.5px) 7px 7px / 14px 14px;
+    opacity: 0.85;
   }
 
-  .card-inner--back {
-    background-color: #8a8580;
-    background-image:
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
-      linear-gradient(145deg, #96918c 0%, #7a7570 100%);
-    justify-content: flex-end;
+  .card-face {
+    width: 100%;
+    height: 100%;
+    background: var(--cream);
+    position: relative;
+    padding: 1.35rem 1.5rem 1.5rem;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    box-shadow: inset 0 0 40px rgba(128, 0, 32, 0.04);
   }
 
-  .sticker {
-    width: 88px;
-    height: 88px;
-    flex-shrink: 0;
-  }
-
-  .sticker--small {
-    width: 56px;
-    height: 56px;
-    opacity: 0.7;
+  .card-face--back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .card-back-text {
-    margin-top: auto;
     font-size: 1rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
-  }
-
-  .card-content {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
+    font-style: italic;
+    color: var(--maroon);
+    opacity: 0.65;
+    text-align: center;
+    line-height: 1.45;
   }
 
   .question-label {
+    justify-self: end;
     font-size: 0.95rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
     font-style: italic;
+    color: var(--maroon);
+    text-align: right;
+  }
+
+  .question-body {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.5rem 0;
   }
 
   .question-text {
-    font-size: clamp(1.25rem, 5vw, 1.55rem);
-    font-weight: 700;
-    line-height: 1.35;
-    color: #ffffff;
+    max-width: 92%;
+    font-size: clamp(1.15rem, 4.8vw, 1.45rem);
+    font-weight: 600;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--maroon);
+    text-align: right;
+  }
+
+  .heart-icon {
+    width: 28px;
+    height: 24px;
+    color: var(--maroon);
+    align-self: end;
+    opacity: 0.9;
   }
 
   .controls {
@@ -354,9 +411,10 @@ import { QUESTIONS } from '../data/questions';
 
   .nav-btn--prev,
   .nav-btn--next {
-    background: #ffffff;
-    color: #c45c4a;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    background: #fffaf2;
+    color: var(--maroon);
+    border: 1px solid rgba(128, 0, 32, 0.15);
+    box-shadow: 0 4px 14px rgba(92, 0, 24, 0.08);
   }
 
   .nav-btn--prev {
@@ -368,15 +426,15 @@ import { QUESTIONS } from '../data/questions';
   }
 
   .nav-btn--shuffle {
-    background: #c45c4a;
-    color: #ffffff;
+    background: var(--maroon);
+    color: #fffaf2;
     min-width: 4.5rem;
     min-height: 4.5rem;
     border-radius: 50%;
     flex-direction: column;
     gap: 0.15rem;
     font-size: 0.85rem;
-    box-shadow: 0 6px 18px rgba(196, 92, 74, 0.35);
+    box-shadow: 0 6px 18px rgba(128, 0, 32, 0.32);
   }
 
   .nav-btn-label {
@@ -390,16 +448,16 @@ import { QUESTIONS } from '../data/questions';
   .hint {
     text-align: center;
     font-size: 0.9rem;
-    color: #8a8580;
+    color: #7a6555;
   }
 
   .slide-out-left {
-    transform: translateX(-110%) rotate(-6deg);
+    transform: translateX(-115%) rotate(-3deg);
     opacity: 0;
   }
 
   .slide-out-right {
-    transform: translateX(110%) rotate(6deg);
+    transform: translateX(115%) rotate(3deg);
     opacity: 0;
   }
 
@@ -417,7 +475,7 @@ import { QUESTIONS } from '../data/questions';
 
   @keyframes slideInRight {
     from {
-      transform: translateX(80px) rotate(4deg);
+      transform: translateX(70px) rotate(2deg);
       opacity: 0;
     }
     to {
@@ -428,7 +486,7 @@ import { QUESTIONS } from '../data/questions';
 
   @keyframes slideInLeft {
     from {
-      transform: translateX(-80px) rotate(-4deg);
+      transform: translateX(-70px) rotate(-2deg);
       opacity: 0;
     }
     to {
@@ -440,10 +498,10 @@ import { QUESTIONS } from '../data/questions';
   @keyframes shufflePop {
     0%,
     100% {
-      transform: scale(1);
+      transform: translateY(0);
     }
     50% {
-      transform: scale(1.03) rotate(-2deg);
+      transform: translateY(-6px);
     }
   }
 
@@ -452,8 +510,12 @@ import { QUESTIONS } from '../data/questions';
       padding-top: 2rem;
     }
 
-    .card-stack {
-      max-width: 360px;
+    .card-scene {
+      max-width: 420px;
+    }
+
+    .lace-frame {
+      padding: 16px;
     }
 
     .nav-btn {
