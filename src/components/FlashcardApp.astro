@@ -80,7 +80,7 @@ import { QUESTIONS } from '../data/questions';
     goPrev,
     getQuestionAt,
     getQuestionLabel,
-    applyShuffle,
+    shuffleAndAdvance,
   } from '../lib/flashcard';
 
   const app = document.querySelector('.app')!;
@@ -132,7 +132,6 @@ import { QUESTIONS } from '../data/questions';
 
     animationTimer = window.setTimeout(() => {
       animationTimer = null;
-      render();
       card.classList.remove('slide-out-left', 'slide-out-right');
       card.classList.add(direction === 'next' ? 'slide-in-right' : 'slide-in-left');
       window.setTimeout(() => {
@@ -144,12 +143,14 @@ import { QUESTIONS } from '../data/questions';
   btnNext.addEventListener('click', () => {
     if (!canGoNext(state)) return;
     state = goNext(state);
+    render();
     animate('next');
   });
 
   btnPrev.addEventListener('click', () => {
     if (!canGoPrev(state)) return;
     state = goPrev(state);
+    render();
     animate('prev');
   });
 
@@ -157,7 +158,7 @@ import { QUESTIONS } from '../data/questions';
     clearAnimationTimer();
     card.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
 
-    const shuffled = applyShuffle(questions.length);
+    const shuffled = shuffleAndAdvance(state);
     order = shuffled.order;
     state = shuffled.state;
 
@@ -189,9 +190,11 @@ import { QUESTIONS } from '../data/questions';
 
       if (deltaX < 0 && canGoNext(state)) {
         state = goNext(state);
+        render();
         animate('next');
       } else if (deltaX > 0 && canGoPrev(state)) {
         state = goPrev(state);
+        render();
         animate('prev');
       }
     },
@@ -201,9 +204,11 @@ import { QUESTIONS } from '../data/questions';
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' && canGoNext(state)) {
       state = goNext(state);
+      render();
       animate('next');
     } else if (e.key === 'ArrowLeft' && canGoPrev(state)) {
       state = goPrev(state);
+      render();
       animate('prev');
     }
   });

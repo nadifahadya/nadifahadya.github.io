@@ -69,3 +69,12 @@ export function applyShuffle(
     order: shuffleIndices(total, random),
   };
 }
+
+export function shuffleAndAdvance(
+  state: FlashcardState,
+  random: () => number = Math.random,
+): { state: FlashcardState; order: number[] } {
+  const order = shuffleIndices(state.total, random);
+  const nextState = canGoNext(state) ? goNext(state) : createInitialState(state.total);
+  return { state: nextState, order };
+}

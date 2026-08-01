@@ -12,6 +12,7 @@ import {
   getQuestionAt,
   getQuestionLabel,
   applyShuffle,
+  shuffleAndAdvance,
 } from '../src/lib/flashcard';
 import { QUESTIONS, TOTAL_QUESTIONS } from '../src/data/questions';
 
@@ -72,6 +73,28 @@ describe('applyShuffle', () => {
     expect(getProgressLabel(shuffledState)).toBe('1 / 5');
     expect(getQuestionLabel(shuffledState)).toBe('Pertanyaan #1');
     expect(order).toHaveLength(5);
+  });
+});
+
+describe('shuffleAndAdvance', () => {
+  it('advances the counter and reshuffles the deck', () => {
+    let state = createInitialState(5);
+    state = goToIndex(state, 2);
+
+    const { state: nextState, order } = shuffleAndAdvance(state, () => 0.5);
+
+    expect(getProgressLabel(nextState)).toBe('4 / 5');
+    expect(getQuestionLabel(nextState)).toBe('Pertanyaan #4');
+    expect(order).toHaveLength(5);
+  });
+
+  it('wraps back to the first card at the end of the deck', () => {
+    const state = goToIndex(createInitialState(5), 4);
+
+    const { state: nextState } = shuffleAndAdvance(state, () => 0.5);
+
+    expect(getProgressLabel(nextState)).toBe('1 / 5');
+    expect(getQuestionLabel(nextState)).toBe('Pertanyaan #1');
   });
 });
 
